@@ -10,49 +10,44 @@ import os
 
 
 
-class draw_pattern():
-    def __init__(self, input_file, output_file, incolors,outcolors,divofouts,randommodes="linear",patternmodes=1):
-        self.input=input_file
-        self.output=output_file
-        self.inc=incolors
-        self.outc=outcolors
-        self.divc=divofouts
-        self.mode=randommodes
-        self.patternmode=patternmodes
-    def flag(self):
-        if os.path.isfile(self.input)==False:
-            return 0
+def draw_pattern(input_file, output_file, incolors,outcolors,divofouts,randommodes="linear",patternmodes=1):
+    if os.path.isfile(input_file)==False:
+        return 0
+    else:
+        imge = Image.open(input_file)
+        #print(imge.mode)
+        im = np.array(imge)
+        #print(im.shape)
+        imX = im.shape[0]
+        imY = im.shape[1]
+        if imge.mode == "RGBA":
+            #f=open("img.txt","w")
+            #for i in range(self.before):
+            #    f.write("[")
+            #    for j in range(self.before):
+            #        f.write(str(im[i,j])+",")
+            #    f.write("]\n")
+            #f.close()
+            #return 2
+            modemode=2
+        elif imge.mode=="RGB":
+            modemode=0
         else:
-            imge = Image.open(self.input)
-            print(imge.mode)
-            im = np.array(imge)
-            print(im.shape)
-            imX = im.shape[0]
-            imY = im.shape[1]
-            if imge.mode == "RGBA":
-                #f=open("img.txt","w")
-                #for i in range(self.before):
-                #    f.write("[")
-                #    for j in range(self.before):
-                #        f.write(str(im[i,j])+",")
-                #    f.write("]\n")
-                #f.close()
-                #return 2
-                modemode=2
-            elif imge.mode=="RGB":
-                modemode=0
-            else:
-                return 2
-            #if imge.mode=="P":
-            #    modemode=1
-            print(im[0,0])
-            output=Image.fromarray(drawing_tiles_program(im,self.inc,self.outc,self.divc,modemode,self.mode,self.patternmode))
-            output.save(self.output)
-            return 1
+            return 2
+        #if imge.mode=="P":
+        #    modemode=1
+        #print(im[0,0])
+        imgarray=drawing_tiles_program(im,incolors,outcolors,divofouts,modemode,randommodes,patternmodes)
+        print("goodbye")
+        output=Image.fromarray(imgarray)
+        output.save(output_file)
+        return 1
 def drawing_tiles_program(inimg,incl,oucl,divcl,mode,randommode,patmode):
+    print("loading")
     def tdrandm(input,pattern,centers,divss):
         #print("how?",list(input),pattern)
         if list(input) == pattern:
+            #print("get",input,pattern)
             if patmode==3:
                 temp_return=[int(randm(centers[0],divss[0],randommode))%256,int(randm(centers[1],divss[1],randommode))%256,int(randm(centers[2],divss[2],randommode))%256]
             else:
@@ -62,23 +57,29 @@ def drawing_tiles_program(inimg,incl,oucl,divcl,mode,randommode,patmode):
                     temp_random=np.random.rand(1)
                 temp_return=[int(max(min(centers[0]-divss[0]+2*divss[0]*temp_random,255.1),0)),int(max(min(centers[1]-divss[1]+2*divss[1]*temp_random,255.1),0)),int(max(min(centers[2]-divss[2]+2*divss[2]*temp_random,255.1),0))]
             #print("yes")
+            if mode==2:
+                temp_return=resize_RGB(temp_return)
             for i in range(len(special_color_list)):
                 if temp_return==special_color_list[i]:
                     temp_return[0]=temp_return[0]-int((temp_return[0]-128)*np.abs(temp_return[0]-128))
-            return temp_return
+            #print(temp_return)
+            return np.array(temp_return)
         else:
-            return list(input)
+            return np.array(input)
     def randm(center,div,randommode):
         if randommode=="gaussian":
             return max(min(np.random.normal(loc=center,scale=div),255.1),0)       #Gaussian
         else:
             return max(min(center-div+2*div*np.random.rand(1),255.1),0)   #linear
     def resize_RGB(input):
-        return input.append(255)
-    def resizing(inputs):
-        for i in range(len(inputs)):
-            inputs[i]=resize_RGB(inputs[i])
-        return inputs
+        input=list(input)
+        input.append(255)
+        return input
+    def resizing(inputsss):
+        for i in range(len(inputsss)):
+            #print(inputs,inputs[i])
+            inputsss[i]=resize_RGB(inputsss[i])
+        return inputsss
     special_color_list=[[107,107,107],[155,155,155],[179,179,179],[201,201,201],[223,223,223],[127,155,241],[255,255,83],[255,33,29],[1,221,1],[227,227,255],[193,177,209],[77,77,77],[255,1,127],[1,1,255],[36,75,103],[57,94,124],[76,113,145],[96,132,167],[116,151,189],[136,171,211],[156,190,233],[176,210,255],[123,88,3],[142,111,4],[161,134,5],[180,157,7],[198,180,8],[217,203,10],[236,226,11],[255,249,13]]
     if mode==2:
         incl==resizing(incl)
@@ -89,13 +90,26 @@ def drawing_tiles_program(inimg,incl,oucl,divcl,mode,randommode,patmode):
     for i in range(len(inimg)):
         for j in range(len(inimg[i])):
             if list(inimg[i][j])==[231,255,255]:
-                outimg[i][j]==[231,255,255]
+                outimg[i][j]=[231,255,255]
+            elif list(inimg[i][j])==[231,255,255,255]:
+                outimg[i][j]=[231,255,255,255]
             else:
                 for kk in range(len(incl)):
                     outimg[i][j]=tdrandm(inimg[i][j],incl[kk],oucl[kk],divcl[kk])
+                    #print(outimg[i][j],inimg[i][j])
+                    if list(outimg[i][j])==list(inimg[i][j]):
+                        jj=3
+                        #print("yeah")
+                    #elif list(outimg[i][j])==list(inimg[i][j]):
+                        #print(kk)
+                    else:
+                        print("ohhh")
+                        break
+    outimg=np.array(outimg)
     outimg=outimg.astype(np.uint8)
-    print(outimg)
-    print(outimg.shape)
+    #print(outimg)
+    #print(incl,oucl,divcl)
+    print(outimg.shape,"done!")
     return outimg
 
 
@@ -189,11 +203,11 @@ def make_window():
         if not input_file or not output_file or len(incolor)==0:
             return
         afterfile = draw_pattern(input_file,output_file,incolor,outcolor,outcolordiv,hows,howdims)
-        if afterfile.flag() ==0:
+        if afterfile ==0:
             messagebox.showinfo("エラー","画像がありません")
-        elif afterfile.flag() ==1:
+        elif afterfile ==1:
             messagebox.showinfo("完了","完了しました。")
-        elif afterfile.flag() ==2:
+        elif afterfile ==2:
             messagebox.showinfo("エラー","画像サイズが正しくありません")
     main_win = tk.Tk()
     main_win.title("draw_pattern_for_simutrans")
