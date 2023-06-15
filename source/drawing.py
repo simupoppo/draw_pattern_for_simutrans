@@ -6,6 +6,7 @@ from tkinter import filedialog
 from tkinter import messagebox
 import pandas as pd
 import os
+import sys
 
 
 
@@ -61,7 +62,7 @@ def drawing_tiles_program(inimg,incl,oucl,divcl,mode,randommode,patmode):
                 temp_return=resize_RGB(temp_return)
             for i in range(len(special_color_list)):
                 if temp_return==special_color_list[i]:
-                    temp_return[0]=temp_return[0]-int((temp_return[0]-128)*np.abs(temp_return[0]-128))
+                    temp_return[0]=temp_return[0]-int((temp_return[0]-128)/np.abs(temp_return[0]-128))
             #print(temp_return)
             return np.array(temp_return)
         else:
@@ -142,15 +143,6 @@ def make_window():
         delmemories()
         input_color_list['text']=str(incolor)
         output_color_list["text"]=str(outcolor)
-    def is_int(s):
-        try:
-            int(s)
-            if 0<=int(s)<=255:
-                return True
-            else:
-                return False
-        except ValueError:
-            return False
     def howrandom():
         howhow=how_comb.get()
         if howhow=="正規分布":
@@ -272,7 +264,83 @@ def make_window():
     #main_win.rowconfigure(0, wieght=1)
     #main_frm.columnconfigure(1, wieght=1)
     main_win.mainloop()
+ 
+def is_int(s):
+    try:
+        int(s)
+        if 0<=int(s)<=255:
+            return True
+        else:
+            return False
+    except ValueError:
+        return False   
+def helptext():
+    print("このプログラムは、シムトランスのアドオン開発向けに画像の単色部分を塗り替えるプログラムです。")
+    print("----------引数について---------------")
+    print("引数無し GUIを起動します")
+    print("-h ヘルプを表示します")
+    print("(input file (csv)) (color file (csv)) [gaussian/linear] [3d/1d]  自動でファイルを作成します")
+    print("input fileは出入力する画像名を指定します。csvファイルは必ず2列で、1列目に変換前の画像ファイル名を、2列目に返還後の画像ファイル名を入力してください。各行ごとに変換を行います。")
+    print("color fileは変換する色の組み合わせをRGBで入力します。必ず9列で入力してください。")
+    print("変換方法gaussian/linearはどちらかを入力してください。それ以外の入力の場合はgaussianモードで変換します。")
+    print("色のばらつき方3d/1dは3dまたは1dを入力してください。それ以外の入力の場合1dモード(1次元的な色のばらつき)になります。")
+    print("入力に不正がある場合、GUIが起動します。")
+    return 
 incolor=[]
 outcolor=[]
 outcolordiv=[]
-make_window()
+if 3<=len(sys.argv)<=5:
+    imagename=sys.argv[1]
+    colorname=sys.argv[2]
+    if os.path.isfile(imagename)==False:
+        print("ファイルがありません")
+        make_window()
+    else:
+        #print("ファイルはあります")
+        try:
+            #print("ok"+colorname+str(type(colorname))+str(os.path.isfile(colorname)))
+            fileofcsv=pd.read_csv(colorname,header=None,names=["incolorsR","incolorsG","incolorsB","outcolorsR","outcolorsG","outcolorsB","outcolordivsR","outcolordivsG","outcolordivsB"])
+            #print("ok"+str(type(fileofcsv["incolorsR"][0])))
+            for i in range(len(fileofcsv["incolorsR"])):
+                #print(str(is_int(1)))
+                #print(str(i)+str(is_int(fileofcsv["incolorsR"][i]))+str(is_int(fileofcsv["incolorsG"][i]))+str(is_int(fileofcsv["incolorsB"][i]))+str(is_int(fileofcsv["outcolorsR"][i]))+str(is_int(fileofcsv["outcolorsG"][i]))+str(is_int(fileofcsv["outcolorsB"][i]))+str(is_int(fileofcsv["outcolordivsR"][i]))+str(is_int(fileofcsv["outcolordivsG"][i]))+str(is_int(fileofcsv["outcolordivsB"][i])))
+                if is_int(fileofcsv["incolorsR"][i])==True and is_int(fileofcsv["incolorsG"][i])==True and is_int(fileofcsv["incolorsB"][i])==True and is_int(fileofcsv["outcolorsR"][i])==True and is_int(fileofcsv["outcolorsG"][i])==True and is_int(fileofcsv["outcolorsB"][i])==True and is_int(fileofcsv["outcolordivsR"][i])==True and is_int(fileofcsv["outcolordivsG"][i])==True and is_int(fileofcsv["outcolordivsB"][i])==True:
+                    incolor.append([fileofcsv["incolorsR"][i],fileofcsv["incolorsG"][i],fileofcsv["incolorsB"][i]])
+                    outcolor.append([fileofcsv["outcolorsR"][i],fileofcsv["outcolorsG"][i],fileofcsv["outcolorsB"][i]])
+                    outcolordiv.append([fileofcsv["outcolordivsR"][i],fileofcsv["outcolordivsG"][i],fileofcsv["outcolordivsB"][i]])
+            print("colorset done")
+            try:
+                fileofimages=pd.read_csv(imagename,header=None,names=["inputimg","outputimg"])
+                for i in range(len(fileofimages["inputimg"])):
+                    if os.path.isfile(str(fileofimages["inputimg"][i]))==False:
+                        print(str(fileofimages["inputimg"][i])+"の画像がありません")
+                    else:
+                        if len(sys.argv)>3:
+                            if sys.argv[3]=="linear":
+                                hows="linear"
+                            else:
+                                hows="gaussian"
+                            if len(sys.argv)==5:
+                                if sys.argv[4]=="3d":
+                                    dim=3
+                                else:
+                                    dim=1
+                            else:
+                                    dim=1
+                        else:
+                            hows="gaussian"
+                            dim=1
+                        draw_pattern(fileofimages["inputimg"][i],fileofimages["outputimg"][i],incolor,outcolor,outcolordiv,hows,dim)
+            except:
+                print("画像指定が不正です")
+                make_window()
+        except:
+            print("色指定が不正です")
+            make_window()
+elif len(sys.argv)==2:
+    if sys.argv[1]=="-help" or "-h":
+        helptext()
+    else:
+        make_window()
+else:
+    make_window()
