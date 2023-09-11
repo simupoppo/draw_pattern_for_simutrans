@@ -46,7 +46,7 @@ def draw_pattern(input_file, output_file, incolors,outcolors,divofouts,randommod
 def drawing_tiles_program(inimg,incl,oucl,divcl,mode,randommode,patmode):
     print("loading")
     def tdrandm(input,pattern,centers,divss):
-        #print("how?",list(input),pattern)
+        # print(pattern,centers)
         if list(input) == pattern:
             #print("get",input,pattern)
             if patmode==3:
@@ -79,7 +79,8 @@ def drawing_tiles_program(inimg,incl,oucl,divcl,mode,randommode,patmode):
     def resizing(inputsss):
         for i in range(len(inputsss)):
             #print(inputs,inputs[i])
-            inputsss[i]=resize_RGB(inputsss[i])
+            if len(inputsss[i])<4:
+                inputsss[i]=resize_RGB(inputsss[i])
         return inputsss
     special_color_list=[[107,107,107],[155,155,155],[179,179,179],[201,201,201],[223,223,223],[127,155,241],[255,255,83],[255,33,29],[1,221,1],[227,227,255],[193,177,209],[77,77,77],[255,1,127],[1,1,255],[36,75,103],[57,94,124],[76,113,145],[96,132,167],[116,151,189],[136,171,211],[156,190,233],[176,210,255],[123,88,3],[142,111,4],[161,134,5],[180,157,7],[198,180,8],[217,203,10],[236,226,11],[255,249,13]]
     if mode==2:
@@ -120,9 +121,11 @@ def make_window():
     def ask_files():
         path=filedialog.askopenfilename()
         file_path.set(path)
+        return
     def add_colorlist_from_csv():
         def errormessageofcsv():
             messagebox.showinfo("エラー","無効な書式です。色はRGBを各1要素ずつ合計9要素指定してください。")
+            return
         pathofcsv=filedialog.askopenfilename()
         try:
             fileofcsv=pd.read_csv(pathofcsv,header=None,names=["incolorsR","incolorsG","incolorsB","outcolorsR","outcolorsG","outcolorsB","outcolordivsR","outcolordivsG","outcolordivsB"])
@@ -133,6 +136,7 @@ def make_window():
                     outcolordiv.append([fileofcsv["outcolordivsR"][i],fileofcsv["outcolordivsG"][i],fileofcsv["outcolordivsB"][i]])
             input_color_list['text']=str(incolor)
             output_color_list["text"]=str(outcolor)
+            return
         except:
             errormessageofcsv()
             return
@@ -143,6 +147,7 @@ def make_window():
         delmemories()
         input_color_list['text']=str(incolor)
         output_color_list["text"]=str(outcolor)
+        return
     def howrandom():
         howhow=how_comb.get()
         if howhow=="正規分布":
@@ -201,6 +206,7 @@ def make_window():
             messagebox.showinfo("完了","完了しました。")
         elif afterfile ==2:
             messagebox.showinfo("エラー","画像サイズが正しくありません")
+        return
     main_win = tk.Tk()
     main_win.title("draw_pattern_for_simutrans")
     main_win.geometry("700x300")
@@ -264,6 +270,7 @@ def make_window():
     #main_win.rowconfigure(0, wieght=1)
     #main_frm.columnconfigure(1, wieght=1)
     main_win.mainloop()
+    return
  
 def is_int(s):
     try:
@@ -280,7 +287,7 @@ def helptext():
     print("引数無し GUIを起動します")
     print("-h ヘルプを表示します")
     print("(input file (csv)) (color file (csv)) [gaussian/linear] [3d/1d]  自動でファイルを作成します")
-    print("input fileは出入力する画像名を指定します。csvファイルは必ず2列で、1列目に変換前の画像ファイル名を、2列目に返還後の画像ファイル名を入力してください。各行ごとに変換を行います。")
+    print("input fileは出入力する画像名を指定します。csvファイルは必ず2列で、1列目に変換前の画像ファイル名を、2列目に変換後の画像ファイル名を入力してください。各行ごとに変換を行います。")
     print("color fileは変換する色の組み合わせをRGBで入力します。必ず9列で入力してください。")
     print("変換方法gaussian/linearはどちらかを入力してください。それ以外の入力の場合はgaussianモードで変換します。")
     print("色のばらつき方3d/1dは3dまたは1dを入力してください。それ以外の入力の場合1dモード(1次元的な色のばらつき)になります。")
