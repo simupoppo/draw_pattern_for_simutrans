@@ -141,10 +141,9 @@ def make_window():
             errormessageofcsv()
             return
     def reset_colors():
-        incolor=[]
-        outcolor=[]
-        outcolordiv=[]    
-        delmemories()
+        incolor.clear()
+        outcolor.clear()
+        outcolordiv.clear()    
         input_color_list['text']=str(incolor)
         output_color_list["text"]=str(outcolor)
         return
